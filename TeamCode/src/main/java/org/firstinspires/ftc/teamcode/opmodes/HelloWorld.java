@@ -41,10 +41,12 @@ public class HelloWorld extends LinearOpMode {
 //    private DcMotor rightFront;
 //    private DcMotor rightBack;
 
-    private MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
 
     @Override
     public void runOpMode() throws InterruptedException {
+
+
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
 //        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
 //        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
 //        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
@@ -63,32 +65,14 @@ public class HelloWorld extends LinearOpMode {
         while(opModeIsActive()){
             TelemetryPacket packet = new TelemetryPacket();
 
-            PoseVelocity2d currentPose = drive.updatePoseEstimate();
 
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
-            PoseVelocity2d v = new PoseVelocity2d(new Vector2d(x,y), rx);
 
 
 
-
-            Pose2dDual<Time> txWorldTarget = new Pose2dDual<Time>(
-                    new Vector2dDual<>(new DualNum<>(new double[]{
-                        drive.pose.position.x + v.linearVel.x,
-                            v.linearVel.x
-                    }), new DualNum<>(new double[]{
-                        drive.pose.position.y + v.linearVel.y,
-                            v.linearVel.y
-                    })),
-                    new Rotation2dDual<>(DualNum.constant(0,2), DualNum.constant(0,2))
-            );
-
-
-
-
-
-
+            drive.teleOp(y * 10,x * 10,rx);
 
 
 //            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);

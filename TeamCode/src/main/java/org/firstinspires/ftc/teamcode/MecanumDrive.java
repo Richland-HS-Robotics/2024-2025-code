@@ -363,6 +363,54 @@ public final class MecanumDrive {
         }
     }
 
+    /**
+     * Teleop driving
+     * @param y The forward param
+     * @param x The left/right param
+     * @param rx The turn param
+     */
+    public void teleOp(double y, double x, double rx){
+        PoseVelocity2d v = new PoseVelocity2d(new Vector2d(x,y), rx);
+
+        PoseVelocity2d robotVelRobot= this.updatePoseEstimate();
+
+        Pose2dDual<Time> txWorldTarget = new Pose2dDual<Time>(
+                new Vector2dDual<>(new DualNum<>(new double[]{
+                        this.pose.position.y + v.linearVel.y,
+                        v.linearVel.y,
+                        0.0
+                }), new DualNum<>(new double[]{
+                        this.pose.position.x + v.linearVel.x,
+                        v.linearVel.x,
+                        0.0
+
+                })),
+                new Rotation2dDual<>(DualNum.constant(0,3), DualNum.constant(0,3))
+        );
+
+        PoseVelocity2dDual<Time> command = new HolonomicController(
+                PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
+                PARAMS.axialVelGain, PARAMS.lateralVelGain, PARAMS.headingVelGain
+        )
+                .compute(txWorldTarget, pose, robotVelRobot);
+
+        MecanumKinematics.WheelVelocities<Time> wheelVels = kinematics.inverse(command);
+        double voltage = voltageSensor.getVoltage();
+
+        final MotorFeedforward feedforward = new MotorFeedforward(PARAMS.kS,
+                PARAMS.kV / PARAMS.inPerTick, PARAMS.kA / PARAMS.inPerTick);
+        double leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage;
+        double leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage;
+        double rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage;
+        double rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage;
+
+        leftFront.setPower(leftFrontPower);
+        rightFront.setPower(rightFrontPower);
+        leftBack.setPower(leftBackPower);
+        rightBack.setPower(rightBackPower);
+
+    }
+
     public final class TurnAction implements Action {
         private final TimeTurn turn;
 
