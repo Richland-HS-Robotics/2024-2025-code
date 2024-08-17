@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.util.MathFunctions.sigmoid;
+
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -7,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.util.MathFunctions;
 import org.firstinspires.ftc.teamcode.util.Pair;
 import org.firstinspires.ftc.teamcode.util.Triple;
 
@@ -15,25 +18,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
-
-/*
- 1 Gamepad
- */
-
-/*
- 2 Gamepads:
- - [X] XY: gamepad1 left_joystick
- - [X] Rotation: gamepad1 right_joystick-x
- - [X] Launch airplane: gamepad1 b
- - [X] field/robot mode swap: gamepad1 a (falling edge, toggle)
- - [ ] slow movement: gamepad1 right_trigger
- - [X] slide up/down: gamepad2 left-joystick-y
- - [X] claw up/down: gamepad2 right-joystick-y
- - [X] release pixel L: gamepad2 y (rising edge)
- - [X] release pixel R: gamepad2 b (rising edge)
- - [ ] Grab pixel: gamepad2 right-trigger
- */
 
 
 /**
@@ -103,15 +87,18 @@ public class Controller {
 
     private ElapsedTime timer;
 
-    private Telemetry telemetry;
-
     private ControlMode controlMode;
 
+    /**
+     * Whether the robot is being controlled by 1 or 2 drivers.
+     */
     public enum ControlMode{
         ONE_DRIVER,
         TWO_DRIVERS
     }
-    public Controller(Telemetry telemetry){
+
+
+    public Controller(){
         this.timer = new ElapsedTime();
 
         this.currentGamepad1 = new Gamepad();
@@ -120,7 +107,6 @@ public class Controller {
         this.prevGamepad1 = new Gamepad();
         this.prevGamepad2 = new Gamepad();
 
-        this.telemetry = telemetry;
 
     }
 
@@ -161,70 +147,14 @@ public class Controller {
     @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.LEFT_STICK_X,GamepadKey.LEFT_STICK_Y,GamepadKey.RIGHT_STICK_Y},description = "drive the robot")
     @OneDriverControl(key = {GamepadKey.LEFT_STICK_X,GamepadKey.LEFT_STICK_Y,GamepadKey.RIGHT_STICK_Y},description = "drive the robot")
     public PoseVelocity2d movementControl(){
-//        return new Triple<>(
-//                (double) currentGamepad1.left_stick_x,
-//                (double) -currentGamepad1.left_stick_y,
-//                (double) currentGamepad1.right_stick_x
-//        );
-
         return new PoseVelocity2d(
                 new Vector2d(
-                    -currentGamepad1.left_stick_y, // Forward-backward
-                    -currentGamepad1.left_stick_x // Left-right (positive x is left)
+                    sigmoid(-currentGamepad1.left_stick_y), // Forward-backward
+                    sigmoid(-currentGamepad1.left_stick_x)  // Left-right (positive x is left)
                 ),
-                -currentGamepad1.right_stick_x // turn (positive movements counter-clockwise)
+                sigmoid(-currentGamepad1.right_stick_x)     // turn (positive movements counter-clockwise)
         );
     }
-
-
-    /**
-     * Returns the direction the linear slide should go.
-     * For 2 drivers it uses the second gamepad left stick y,
-     * and for 1 driver it uses the right stick y. (same stick as rotation)
-     *
-     * @return Direction of linear slide, from -1 to 1
-     */
-    @OneDriverControl(key = GamepadKey.RIGHT_STICK_Y,description = "move the linear slide up and down")
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_2, key = GamepadKey.RIGHT_STICK_Y, description = "move the linear slide up and down")
-    public double linearSlideInOut(){
-        if(controlMode == ControlMode.ONE_DRIVER) {
-            return -currentGamepad1.right_stick_y;
-        }else if(controlMode == ControlMode.TWO_DRIVERS){
-            return -currentGamepad2.right_stick_y;
-        }else{
-            return 0;
-        }
-    }
-
-    /**
-     * Returns whether the airplane should be launched
-     * @return
-     */
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = GamepadKey.B, description = "Launch the airplane")
-    @OneDriverControl(key = GamepadKey.B,description = "Launch the airplane")
-    public boolean launchAirplane(){
-        return currentGamepad1.b && currentGamepad1.left_bumper;
-    }
-
-
-    /**
-     * Returns whether either pixel should be released.
-     * @return A pair of booleans. The first is left and the second is right.
-     */
-    @Deprecated
-    public Pair<Boolean, Boolean> releasePixels(){
-        if(controlMode == ControlMode.TWO_DRIVERS){
-            return new Pair<>(currentGamepad2.y,currentGamepad2.x);
-        }else{
-            return new Pair<>(currentGamepad1.b,currentGamepad1.a);
-        }
-    }
-
-
-    public boolean overridePressed(){
-        return currentGamepad1.left_bumper;
-    }
-
 
 
     /**
@@ -259,113 +189,5 @@ public class Controller {
     private double twoTriggersToAnalog(float t1, float t2){
         return t2-t1;
     }
-
-
-
-    public double movementSlownessFactor(){
-        //return 1 - currentGamepad1.right_trigger;
-        return 1;
-    }
-
-
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_2, key = GamepadKey.RIGHT_STICK_Y, description = "move the linear slide up or down")
-    @OneDriverControl(key = {GamepadKey.DPAD_UP,GamepadKey.DPAD_DOWN}, description = "move the linear slide up and down")
-    public double intakeUpDown(){
-        if(controlMode == ControlMode.TWO_DRIVERS) {
-            telemetry.addData("Two drivers: ",-currentGamepad2.right_stick_y);
-            return -currentGamepad2.right_stick_y;
-        }else{
-            telemetry.addData("One driver: ",twoButtonsToAnalog(currentGamepad1.dpad_up,currentGamepad1.dpad_down));
-            return twoButtonsToAnalog(currentGamepad1.dpad_up,currentGamepad1.dpad_down);
-        }
-    }
-
-
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_2, key = GamepadKey.RIGHT_TRIGGER, description = "close the grabbing claw")
-    @OneDriverControl(key = GamepadKey.LEFT_TRIGGER, description = "close the grabbing claw")
-    public boolean clawGrab(){
-        if(controlMode == ControlMode.TWO_DRIVERS){
-            return currentGamepad2.right_trigger > 0.5;
-
-        }else{
-            return currentGamepad1.left_trigger > 0.5;
-        }
-    }
-
-
-    /**
-     * The controls for running the hanging winch
-     * @return the power to send to the winch motor
-     */
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.DPAD_UP,GamepadKey.DPAD_DOWN}, description = "power the hang winch")
-    public double hangWinch(){
-        if(controlMode == ControlMode.TWO_DRIVERS) {
-            return twoButtonsToAnalog(currentGamepad1.dpad_up,currentGamepad1.dpad_down);
-        }else{
-            return 0;
-        }
-    }
-
-
-    /**
-     * The controls for running the hanging arm.
-     * @return the power to send to the hang arm motor.
-     */
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.RIGHT_STICK_Y}, description = "move the hang arm")
-    @OneDriverControl(key = {GamepadKey.LEFT_TRIGGER,GamepadKey.RIGHT_TRIGGER}, description = "move the hang arm")
-    public double hangArm(){
-
-        if(controlMode == ControlMode.TWO_DRIVERS){
-            return -currentGamepad1.right_stick_y;
-        }
-        return twoTriggersToAnalog(currentGamepad1.left_trigger,currentGamepad1.right_trigger);
-    }
-
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.RIGHT_TRIGGER}, description = "Set the movement speed")
-    public double movementSpeed(){
-        if(controlMode == ControlMode.TWO_DRIVERS){
-            // Range of 0.25 to 1
-            if(currentGamepad1.right_bumper){
-                return 0;
-            }
-            return 0.25 + ((-currentGamepad1.right_trigger + 1) / 1.3333333);
-        }
-        return 1;
-    }
-
-
-    /**
-     * The controls for setting the linear slide sub arm.
-     * @return Whether or not the arm should be up.
-     */
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_2, key = GamepadKey.LEFT_STICK_Y, description = "move the linear slide sub arm up or down")
-    public boolean slideSubArm(){
-        if(controlMode==ControlMode.TWO_DRIVERS){
-            return -currentGamepad2.left_stick_y > 0.5;
-        }
-        return false;
-    }
-
-
-
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = GamepadKey.X, description = "switch robot to robot centric")
-    @OneDriverControl(key = GamepadKey.X, description = "switch robot to robot centric")
-    public boolean robotCentric(){
-        return currentGamepad1.x;
-    }
-
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = GamepadKey.Y, description = "switch robot to field centric")
-    @OneDriverControl(key = GamepadKey.Y, description = "switch robot to field centric")
-    public boolean fieldCentric(){
-        return currentGamepad1.y;
-    }
-
-
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.LEFT_BUMPER,GamepadKey.RIGHT_BUMPER}, description = "snap to a position on the field")
-    @OneDriverControl(key = {GamepadKey.LEFT_BUMPER,GamepadKey.RIGHT_BUMPER}, description = "snap to a position on the field")
-    public boolean snapToPosition(){
-        return currentGamepad1.left_bumper && currentGamepad1.right_bumper;
-    }
-
 }
 
