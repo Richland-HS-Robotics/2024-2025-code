@@ -10,4 +10,27 @@ public class MathFunctions {
     }
 
 
+    /**
+     * Round a number to the nearest multiple of another number.
+     * @param number The number to round
+     * @param multiple The multiple to round to
+     * @return The rounded number
+     */
+    public static double roundToMultiple(double number, int multiple){
+        return multiple * Math.round(number / multiple);
+    }
+
+
+
+    public static double roundToMultipleInDirection(double number, int multiple, double direction){
+        double half = multiple / 2.0;
+
+        if(direction >= 0) {
+            return Math.ceil((number + half)  / multiple)  * multiple;
+        }else{
+            return Math.floor((number + half) / multiple) * multiple;
+        }
+    }
+
+
 }
