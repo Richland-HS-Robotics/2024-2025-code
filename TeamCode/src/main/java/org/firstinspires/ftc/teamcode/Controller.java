@@ -89,6 +89,12 @@ public class Controller {
 
     private ControlMode controlMode;
 
+
+    /**
+     * Whether gamepad1 is being supervised by gamepad 2
+     */
+    private boolean supervisedMode;
+
     /**
      * Whether the robot is being controlled by 1 or 2 drivers.
      */
@@ -106,8 +112,6 @@ public class Controller {
 
         this.prevGamepad1 = new Gamepad();
         this.prevGamepad2 = new Gamepad();
-
-
     }
 
 
@@ -147,13 +151,32 @@ public class Controller {
     @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.LEFT_STICK_X,GamepadKey.LEFT_STICK_Y,GamepadKey.RIGHT_STICK_Y},description = "drive the robot")
     @OneDriverControl(key = {GamepadKey.LEFT_STICK_X,GamepadKey.LEFT_STICK_Y,GamepadKey.RIGHT_STICK_Y},description = "drive the robot")
     public PoseVelocity2d movementControl(){
-        return new PoseVelocity2d(
+        // This should be a range of 1/3 to 1
+        double multiplier = ((1.0 - currentGamepad1.right_trigger) * (2.0/3.0)) + (1.0/3.0);
+
+        PoseVelocity2d input =  new PoseVelocity2d(
                 new Vector2d(
-                    sigmoid(-currentGamepad1.left_stick_y), // Forward-backward
-                    sigmoid(-currentGamepad1.left_stick_x)  // Left-right (positive x is left)
+                    sigmoid(-currentGamepad1.left_stick_y) * multiplier, // Forward-backward
+                    sigmoid(-currentGamepad1.left_stick_x) * multiplier     // Left-right (positive x is left)
                 ),
-                sigmoid(-currentGamepad1.right_stick_x)     // turn (positive movements counter-clockwise)
+                sigmoid(-currentGamepad1.right_stick_x) * multiplier        // turn (positive movements counter-clockwise)
         );
+
+        if(controlMode == ControlMode.TWO_DRIVERS && supervisedMode){
+            if (currentGamepad2.left_bumper) {
+                multiplier = ((1.0 - currentGamepad2.right_trigger) * (2.0/3.0)) + (1.0/3.0);
+                input = new PoseVelocity2d(
+                        new Vector2d(
+                                sigmoid(-currentGamepad2.left_stick_y) * multiplier,
+                                sigmoid(-currentGamepad2.left_stick_x) * multiplier
+                        ),
+                        sigmoid(-currentGamepad2.right_stick_x) * multiplier
+                );
+            }
+        }
+
+
+        return input;
     }
 
 
