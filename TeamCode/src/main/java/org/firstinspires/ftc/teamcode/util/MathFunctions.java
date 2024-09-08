@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import com.acmerobotics.roadrunner.Vector2d;
+
 public class MathFunctions {
     public static double sigmoid(double x){
         if(x == 0) {
@@ -33,4 +35,10 @@ public class MathFunctions {
     }
 
 
+    public static Vector2d rotateVector(Vector2d v, double angle){
+        return new Vector2d(
+                Math.cos(angle) * v.x - Math.sin(angle) * v.y,
+                Math.sin(angle) * v.x + Math.cos(angle) * v.y
+        );
+    }
 }

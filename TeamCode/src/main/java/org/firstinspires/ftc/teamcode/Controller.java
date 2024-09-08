@@ -119,6 +119,8 @@ public class Controller {
         this.controlMode = mode;
     }
 
+   private boolean globalDrive = false;
+
     /**
      * Update the state. This must be called every tick.
      * @param gamepad1 Gamepad 1.
@@ -145,11 +147,33 @@ public class Controller {
             this.controlMode = ControlMode.ONE_DRIVER;
         }
 
+        // if the a button was just released, toggle globalDrive
+        if(prevGamepad1.a && !currentGamepad1.a){
+            globalDrive = !globalDrive;
+        }
+
     }
 
 
-    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.LEFT_STICK_X,GamepadKey.LEFT_STICK_Y,GamepadKey.RIGHT_STICK_Y},description = "drive the robot")
-    @OneDriverControl(key = {GamepadKey.LEFT_STICK_X,GamepadKey.LEFT_STICK_Y,GamepadKey.RIGHT_STICK_Y},description = "drive the robot")
+    @TwoDriverControl(
+            gamepad = GamepadType.GAMEPAD_1,
+            key = {
+                    GamepadKey.LEFT_STICK_X,
+                    GamepadKey.LEFT_STICK_Y,
+                    GamepadKey.RIGHT_STICK_Y,
+                    GamepadKey.RIGHT_TRIGGER
+            },
+            description = "drive the robot"
+    )
+    @OneDriverControl(
+            key = {
+                    GamepadKey.LEFT_STICK_X,
+                    GamepadKey.LEFT_STICK_Y,
+                    GamepadKey.RIGHT_STICK_Y,
+                    GamepadKey.RIGHT_TRIGGER
+            },
+            description = "drive the robot"
+    )
     public PoseVelocity2d movementControl(){
         // This should be a range of 1/3 to 1
         double multiplier = ((1.0 - currentGamepad1.right_trigger) * (2.0/3.0)) + (1.0/3.0);
@@ -179,6 +203,26 @@ public class Controller {
         return input;
     }
 
+
+    @TwoDriverControl(gamepad = GamepadType.GAMEPAD_1, key = {GamepadKey.A}, description = "toggle field centric driving")
+    @OneDriverControl(key = {GamepadKey.A}, description = "toggle field centric driving")
+    public boolean globalDriveActivated(){
+        return globalDrive;
+    }
+
+
+    public boolean outOfJailFree(){
+        return currentGamepad1.left_bumper;
+    }
+
+
+    public boolean setBottomLeftCorner(){
+        return currentGamepad1.x;
+    }
+
+    public boolean setTopRightCorner(){
+        return currentGamepad1.b;
+    }
 
     /**
      * Converts 2 button inputs (like the dpad) to a double input.
