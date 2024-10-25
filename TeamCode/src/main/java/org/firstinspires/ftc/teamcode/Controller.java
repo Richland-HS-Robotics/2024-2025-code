@@ -80,10 +80,10 @@ public class Controller {
 
 
 
-    private Gamepad currentGamepad1;
-    private Gamepad currentGamepad2;
-    private Gamepad prevGamepad1;
-    private Gamepad prevGamepad2;
+    private final Gamepad currentGamepad1;
+    private final Gamepad currentGamepad2;
+    private final Gamepad prevGamepad1;
+    private final Gamepad prevGamepad2;
 
     private ElapsedTime timer;
 
@@ -222,6 +222,28 @@ public class Controller {
 
     public boolean setTopRightCorner(){
         return currentGamepad1.b;
+    }
+
+    public double manualShoulder(){
+        if(this.controlMode == ControlMode.TWO_DRIVERS) {
+            return -currentGamepad2.right_stick_y;
+        }else{
+            return -currentGamepad1.right_stick_y;
+        }
+    }
+
+    /**
+     * Returns the speed that the intake should go at. A positive number sucks in,
+     * a positive number spits out. This number may need to be reversed based on what
+     * orientation the arm is in.
+     * @return The speed the intake should move at, from 0 to 1.
+     */
+    public double intakeSpeed() {
+        if(this.controlMode == ControlMode.TWO_DRIVERS){
+            return twoTriggersToAnalog(currentGamepad2.left_trigger, currentGamepad2.right_trigger);
+        }else{
+            return twoTriggersToAnalog(currentGamepad1.left_trigger, currentGamepad1.right_trigger);
+        }
     }
 
     /**

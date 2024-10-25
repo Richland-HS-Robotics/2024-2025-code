@@ -169,11 +169,14 @@
 
 <!--            <RevBlinkinLedDriver name="[...]" port="0" bus="[...]" />-->
         </LynxModule>
-<!--        <LynxModule name="Secondary Hub" port="3">-->
-<!--             &lt;!&ndash; *************************************************************-->
-<!--              Add devices here that are plugged into the secondary REV expansion-->
-<!--              hub, following the syntax above.-->
-<!--              ************************************************************* &ndash;&gt;-->
-<!--        </LynxModule>-->
+        <LynxModule name="Secondary Hub" port="3">
+             <!-- *************************************************************
+              Add devices here that are plugged into the secondary REV expansion
+              hub, following the syntax above.
+              ************************************************************* -->
+
+
+            <RevRoboticsCoreHexMotor name="intakeMotor" port="1" />
+        </LynxModule>
     </LynxUsbDevice>
 </Robot>

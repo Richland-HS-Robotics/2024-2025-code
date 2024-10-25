@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Controller;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.components.Arm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public abstract class RobotOpMode extends LinearOpMode {
 
     protected MecanumDrive drive;
     protected Controller controller;
+    protected Arm arm;
 
 
     @Override
@@ -31,6 +33,8 @@ public abstract class RobotOpMode extends LinearOpMode {
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
         // TODO set initial location
 
+
+        arm = new Arm(hardwareMap);
         controller = new Controller();
 
         runInit();
