@@ -34,6 +34,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorImpl;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -45,6 +46,7 @@ import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
 import org.firstinspires.ftc.teamcode.messages.PoseMessage;
+import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose;
 
 import java.lang.Math;
 import java.util.Arrays;
@@ -91,6 +93,8 @@ public final class MecanumDrive {
         public double headingVelGain = 0.0; // shared with turn
     }
 
+    private boolean disabled = false;
+
     public static Params PARAMS = new Params();
 
     public final MecanumKinematics kinematics = new MecanumKinematics(
@@ -106,13 +110,13 @@ public final class MecanumDrive {
     public final AccelConstraint defaultAccelConstraint =
             new ProfileAccelConstraint(PARAMS.minProfileAccel, PARAMS.maxProfileAccel);
 
-    public final DcMotorEx leftFront, leftBack, rightBack, rightFront;
+    public DcMotorEx leftFront, leftBack, rightBack, rightFront;
 
-    public final VoltageSensor voltageSensor;
+    public VoltageSensor voltageSensor;
 
-    public final LazyImu lazyImu;
+    public LazyImu lazyImu;
 
-    public final Localizer localizer;
+    public Localizer localizer;
     public Pose2d pose;
 
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
@@ -216,21 +220,41 @@ public final class MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
+
+        this.leftFront = null;
+        this.leftBack = null;
+        this.rightBack = null;
+        this.rightFront = null;
+
         // DONE: make sure your config has motors with these names (or change them)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
-        rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
-        rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
+        try{
+            this.leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
+            this.leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
+            this.rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
+            this.rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
 
-        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            //hardwareMap.tryGet(DcMotorEx.class, "leftFront");
+        }catch (Exception e){
+            disabled = true;
+
+
+            return;
+        }
+
+        if(disabled){
+            return;
+        }
+
+
+        this.leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // DONE: reverse motor directions if needed
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // DONE: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
@@ -245,6 +269,8 @@ public final class MecanumDrive {
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {
+        if(disabled)return;
+
         MecanumKinematics.WheelVelocities<Time> wheelVels = new MecanumKinematics(1).inverse(
                 PoseVelocity2dDual.constant(powers, 1));
 
@@ -370,6 +396,7 @@ public final class MecanumDrive {
      * @param rx The turn param
      */
     public void teleOp(double y, double x, double rx){
+        if(disabled)return;
         PoseVelocity2d v = new PoseVelocity2d(new Vector2d(x,y), rx);
 
         PoseVelocity2d robotVelRobot= this.updatePoseEstimate();
@@ -491,6 +518,11 @@ public final class MecanumDrive {
     }
 
     public PoseVelocity2d updatePoseEstimate() {
+        if(disabled){
+            return new PoseVelocity2d(new Vector2d(0,0), 0);
+        }
+
+
         Twist2dDual<Time> twist = localizer.update();
         pose = pose.plus(twist.value());
 

@@ -78,10 +78,13 @@
 <!--            <Motor name=".." port="[...]" /> &lt;!&ndash; Yellow &ndash;&gt;-->
 
 
-            <RevRobotics40HDHexMotor name="leftFront" port="0" />
-            <RevRobotics40HDHexMotor name="leftBack" port="1" />
+<!--            <RevRobotics40HDHexMotor name="leftFront" port="0" />-->
+<!--            <RevRobotics40HDHexMotor name="leftBack" port="1" />-->
             <RevRobotics40HDHexMotor name="rightFront" port="2" />
             <RevRobotics40HDHexMotor name="rightBack" port="3" />
+
+            <RevRoboticsCoreHexMotor name="intakeMotor" port="1" />
+            <RevRobotics40HDHexMotor name="shoulderMotor" port="0" />
 
 
 
@@ -169,14 +172,14 @@
 
 <!--            <RevBlinkinLedDriver name="[...]" port="0" bus="[...]" />-->
         </LynxModule>
-        <LynxModule name="Secondary Hub" port="3">
+<!--        <LynxModule name="Secondary Hub" port="3">-->
              <!-- *************************************************************
               Add devices here that are plugged into the secondary REV expansion
               hub, following the syntax above.
               ************************************************************* -->
 
 
-            <RevRoboticsCoreHexMotor name="intakeMotor" port="1" />
-        </LynxModule>
+<!--            <RevRoboticsCoreHexMotor name="intakeMotor" port="1" />-->
+<!--        </LynxModule>-->
     </LynxUsbDevice>
 </Robot>

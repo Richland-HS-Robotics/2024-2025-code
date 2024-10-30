@@ -12,16 +12,22 @@ class MainTeleOp: RobotOpMode() {
     override fun runLoop() {
         drive.setDrivePowers(controller.movementControl()) // Drive
 
-        arm.setShoulderPowerManual(controller.manualShoulder()) // Move arm
+        //arm.setShoulderPowerManual(controller.manualShoulder()) // Move arm
         arm.setIntakeSpeed(controller.intakeSpeed()) // Set intake speed
 
+
+        if(controller.armUp()){
+            addAction(arm.rotateToAngle(90.0))
+        }
+
+        if(controller.armDown()){
+            addAction(arm.rotateToAngle(0.0))
+        }
     }
 
 
     override fun runStart() {
         // Nothing to do here
     }
-
-
 
 }

@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Controller;
@@ -88,7 +89,20 @@ public abstract class RobotOpMode extends LinearOpMode {
     public abstract void runStart();
 
     public void addAction(Action a){
-        runningActions.add(a);
+        boolean replaced = false;
+
+        Class<?> newClass = a.getClass();
+        for(int i = 0; i < runningActions.size(); i++){
+            if (runningActions.get(i).getClass() == newClass){
+                runningActions.set(i, new SequentialAction(runningActions.get(i), a));
+                replaced = true;
+            }
+        }
+
+        if(!replaced){
+            runningActions.add(a);
+        }
     }
+
 
 }

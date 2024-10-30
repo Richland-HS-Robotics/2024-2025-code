@@ -232,9 +232,20 @@ public class Controller {
         }
     }
 
+    public boolean armUp(){
+        return currentGamepad2.a && (!prevGamepad2.a);
+    }
+
+
+    public boolean armDown(){
+        return currentGamepad2.b && (!prevGamepad2.b);
+    }
+
+
+
     /**
      * Returns the speed that the intake should go at. A positive number sucks in,
-     * a positive number spits out. This number may need to be reversed based on what
+     * a negative number spits out. This number may need to be reversed based on what
      * orientation the arm is in.
      * @return The speed the intake should move at, from 0 to 1.
      */
