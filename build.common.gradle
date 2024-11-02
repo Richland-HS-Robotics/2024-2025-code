@@ -106,9 +106,12 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    sourceSets.main {
+    sourceSets.main { // HEAD
         jni.srcDirs = []
         jniLibs.srcDir rootProject.file('libs')
+    }
+    packagingOptions { // 9f11128 (FtcRobotController v10.1)
+        pickFirst '**/*.so'
     }
     ndkVersion '21.3.6528147'
 }
