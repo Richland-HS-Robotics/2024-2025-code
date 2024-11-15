@@ -3,37 +3,44 @@ package org.firstinspires.ftc.teamcode.components
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.teamcode.util.MathFunctions.toRadians
 import org.firstinspires.ftc.teamcode.util.PIDController
+import kotlin.math.cos
 
-@Config
-class Arm(hardwareMap: HardwareMap) {
-    private var disabled = false
+open class Arm(hardwareMap: HardwareMap) {
+    var disabled = false
 
-    private lateinit var shoulder: DcMotor
-    private lateinit var intake: DcMotor
+
+    lateinit var shoulder: DcMotor
 
     init{
         try{
             shoulder = hardwareMap.get(DcMotor::class.java,"shoulderMotor")
-            intake = hardwareMap.get(DcMotor::class.java, "intakeMotor")
         }catch (e: Exception){
             disabled = true
         }
 
         if (!disabled){
             shoulder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            shoulder.direction = DcMotorSimple.Direction.REVERSE
         }
     }
 
-    companion object{
-        const val KP = 0.1
-        const val KI = 0.0
-        const val KD = 0.0
+    @Config
+    companion object ArmConfiguration{
+        val KP = 0.1
+        val KI = 0.0
+        val KD = 0.0
+
+        var TICKS_PER_REVOLUTION = 5580
 
 
-        private const val TICKS_PER_REVOLUTION = 5580
+        @JvmField var MIN_POWER: Double = 0.2
+        @JvmField var TOP_ANGLE: Double = 100.0
     }
 
     /**
@@ -48,8 +55,7 @@ class Arm(hardwareMap: HardwareMap) {
         // So there are 5580 ticks per one revolution of the arm.
         // (28 counts per revolution at the motor)
 
-
-        val rotations = encoderTicks/TICKS_PER_REVOLUTION
+        val rotations: Double = encoderTicks.toDouble()/TICKS_PER_REVOLUTION.toDouble()
         val degrees = rotations * 360.0
 
         return degrees
@@ -61,7 +67,7 @@ class Arm(hardwareMap: HardwareMap) {
      * @param [angle] the angle above the ground
      * @return The number of ticks above the ground
      */
-    private fun angleToTicks(angle: Double): Int{
+    fun angleToTicks(angle: Double): Int{
         val rotations = angle / 360.0
         val ticks = (rotations * TICKS_PER_REVOLUTION).toInt()
         return ticks
@@ -91,34 +97,55 @@ class Arm(hardwareMap: HardwareMap) {
         }
     }
 
+    /**
+     * Manually set the shoulder motor power.
+     * @param [power] the power to set. Should be between -1.0 and 1.0.
+     */
     fun setShoulderPowerManual(power: Double){
         if (!this.disabled){
-            shoulder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            shoulder.mode = DcMotor.RunMode.RUN_USING_ENCODER
             shoulder.power = power
         }
     }
 
-    fun setIntakeSpeed(speed: Double){
-        // TODO reverse motor when arm is on the other side
-
-        if (!this.disabled){
-            intake.power = speed
-        }
-    }
 
     /**
-     * Set the power of the intake, taking into account the rotation of the arm.
-     * @param [power] The power with which to intake. Positive is a suck in,
-     * negative is a spit out.
+     * Set the shoulder power, but perform some augmentations.
+     * @param [power]
      */
-    fun setIntakePower(power: Double){
-        // TODO Update threshold angle
-        if (!disabled){
-            if(shoulder.currentPosition > angleToTicks(90.0)){
-                intake.power = -power
-            }else{
-                intake.power = power
-            }
+    fun setShoulderPowerAssisted(power: Double, packet: TelemetryPacket){
+        if(disabled) return
+
+        shoulder.mode = DcMotor.RunMode.RUN_USING_ENCODER
+
+        val angleAboveFloor = ticksToAngle(shoulder.currentPosition)
+        packet.put("Motor ticks", shoulder.currentPosition)
+        packet.put("Arm Angle", angleAboveFloor)
+        packet.put("Cosine of Angle", cos(toRadians(angleAboveFloor)))
+
+
+        if(angleAboveFloor > TOP_ANGLE) {
+            shoulder.power = -power
+        }else{
+            shoulder.power = power
         }
+
+
+//        val cosAngle = cos((360.0 / (TOP_ANGLE * 4)) * toRadians(angleAboveFloor))
+//        if(cosAngle > 0){
+//            shoulder.power = power * clamp(cosAngle, MIN_POWER, 9999.0)
+//        }else if(cosAngle < 0){
+//            shoulder.power = power * clamp(cosAngle, -9999.0, -MIN_POWER)
+//        }else{
+//            shoulder.power = 0.1 * power
+//        }
+//
+//        shoulder.power = power * (clamp(cos(0.72 *  toRadians(angleAboveFloor)), MIN_POWER, 9999.0))
+        packet.put("Power", shoulder.power)
+
     }
+
+
+
+
 }

@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
  * @param [kI] the I term of the PID
  * @param [kD] the D term of the PID
  */
-class PIDController(var kP: Double, var kI: Double, var kD: Double) {
+class PIDController(private var kP: Double, private var kI: Double, private var kD: Double) {
     private var integralSum = 0.0
     private var lastError = 0.0
     var error: Double = 0.0

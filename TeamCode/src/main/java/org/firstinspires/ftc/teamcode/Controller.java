@@ -90,6 +90,8 @@ public class Controller {
     private ControlMode controlMode;
 
 
+    private boolean currentlyHanging = false;
+
     /**
      * Whether gamepad1 is being supervised by gamepad 2
      */
@@ -148,8 +150,11 @@ public class Controller {
         }
 
         // if the a button was just released, toggle globalDrive
-        if(prevGamepad1.a && !currentGamepad1.a){
-            globalDrive = !globalDrive;
+//        if(prevGamepad1.a && !currentGamepad1.a){
+//            globalDrive = !globalDrive;
+//        }
+        if(g1Exists && g2Exists && currentGamepad2.b && currentGamepad2.y && -currentGamepad2.right_stick_y > 0.25){
+            currentlyHanging = true;
         }
 
     }
@@ -180,10 +185,10 @@ public class Controller {
 
         PoseVelocity2d input =  new PoseVelocity2d(
                 new Vector2d(
-                    sigmoid(-currentGamepad1.left_stick_y) * multiplier, // Forward-backward
-                    sigmoid(-currentGamepad1.left_stick_x) * multiplier     // Left-right (positive x is left)
+                    sigmoid(-currentGamepad1.left_stick_x) * multiplier * 0.75, // Forward-backward
+                    sigmoid(-currentGamepad1.left_stick_y) * multiplier * 0.75     // Left-right (positive x is left)
                 ),
-                sigmoid(-currentGamepad1.right_stick_x) * multiplier        // turn (positive movements counter-clockwise)
+                sigmoid(-currentGamepad1.right_stick_x) * multiplier * 0.25 // turn (positive movements counter-clockwise)
         );
 
         if(controlMode == ControlMode.TWO_DRIVERS && supervisedMode){
@@ -215,6 +220,21 @@ public class Controller {
         return currentGamepad1.left_bumper;
     }
 
+    public boolean driverTwoOverride(){
+        return currentGamepad2.b;
+    }
+
+
+    /**
+     * A keybinding to reset the arm motor encoder if something breaks.
+     *
+     * The driver has to press down all buttons to reset.
+     * @return Whether the keybinding is pressed
+     */
+    public boolean resetArmEncoder(){
+        return currentGamepad2.a && currentGamepad2.b && currentGamepad2.x && currentGamepad2.y;
+    }
+
 
     public boolean setBottomLeftCorner(){
         return currentGamepad1.x;
@@ -225,12 +245,20 @@ public class Controller {
     }
 
     public double manualShoulder(){
+        if(currentlyHanging){
+            return 1.0;
+        }
         if(this.controlMode == ControlMode.TWO_DRIVERS) {
-            return -currentGamepad2.right_stick_y;
+            return -currentGamepad2.right_stick_y * 0.5;
         }else{
-            return -currentGamepad1.right_stick_y;
+            return currentGamepad1.right_stick_y;
         }
     }
+
+    public double manualShoulderGreen(){
+        return -currentGamepad1.right_stick_y;
+    }
+
 
     public boolean armUp(){
         return currentGamepad2.a && (!prevGamepad2.a);
@@ -239,6 +267,16 @@ public class Controller {
 
     public boolean armDown(){
         return currentGamepad2.b && (!prevGamepad2.b);
+    }
+
+
+    public boolean greenClawOpenClose(){
+        return currentGamepad1.right_trigger > 0.5;
+    }
+
+
+    public boolean isCurrentlyHanging(){
+        return currentlyHanging;
     }
 
 
@@ -251,9 +289,9 @@ public class Controller {
      */
     public double intakeSpeed() {
         if(this.controlMode == ControlMode.TWO_DRIVERS){
-            return twoTriggersToAnalog(currentGamepad2.left_trigger, currentGamepad2.right_trigger);
+            return twoTriggersToAnalog(currentGamepad2.left_trigger, currentGamepad2.right_trigger) * 0.5;
         }else{
-            return twoTriggersToAnalog(currentGamepad1.left_trigger, currentGamepad1.right_trigger);
+            return twoTriggersToAnalog(currentGamepad1.left_trigger, currentGamepad1.right_trigger) * 0.5;
         }
     }
 

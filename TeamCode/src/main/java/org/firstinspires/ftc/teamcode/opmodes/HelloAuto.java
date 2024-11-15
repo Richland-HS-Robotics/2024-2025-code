@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -33,7 +34,7 @@ public class HelloAuto extends RobotOpMode {
 
 
     @Override
-    public void runLoop() {
+    public void runLoop(TelemetryPacket packet) {
 
 
     }

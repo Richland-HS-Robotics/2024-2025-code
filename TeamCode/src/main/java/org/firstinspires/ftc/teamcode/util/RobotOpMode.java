@@ -1,15 +1,19 @@
 package org.firstinspires.ftc.teamcode.util;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Controller;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.components.Arm;
+import org.firstinspires.ftc.teamcode.components.GoldArm;
+import org.firstinspires.ftc.teamcode.components.GreenArm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +27,7 @@ public abstract class RobotOpMode extends LinearOpMode {
     protected List<Action> runningActions = new ArrayList<>();
 
 
+
     protected MecanumDrive drive;
     protected Controller controller;
     protected Arm arm;
@@ -30,12 +35,21 @@ public abstract class RobotOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode(){
+
         // Run initialization
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
         // TODO set initial location
 
 
-        arm = new Arm(hardwareMap);
+        arm = new GoldArm(hardwareMap);
+        if(arm.getDisabled()){
+            arm = new GreenArm(hardwareMap);
+        }
+        if(arm.getDisabled()){
+            arm = new Arm(hardwareMap);
+        }
+
+
         controller = new Controller();
 
         runInit();
@@ -53,7 +67,9 @@ public abstract class RobotOpMode extends LinearOpMode {
             drive.updatePoseEstimate();
             controller.update(gamepad1, gamepad2);
 
-            runLoop();
+
+
+            runLoop(packet);
 
             List<Action> newActions = new ArrayList<>();
             for(Action action: runningActions){
@@ -80,7 +96,7 @@ public abstract class RobotOpMode extends LinearOpMode {
      * User code to run in the main loop.
      * This function is called on every tick.
      */
-    public abstract void runLoop();
+    public abstract void runLoop(TelemetryPacket packet);
 
     /**
      * User code to run just before the main loop starts.

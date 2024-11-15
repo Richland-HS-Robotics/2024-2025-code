@@ -41,4 +41,14 @@ public class MathFunctions {
                 Math.sin(angle) * v.x + Math.cos(angle) * v.y
         );
     }
+
+
+    /**
+     * Convert an angle in degrees to radians.
+     * @param degrees The angle in degrees
+     * @return The angle in radians
+     */
+    public static double toRadians(double degrees){
+        return (degrees / 180.0) * Math.PI;
+    }
 }
