@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode.util.MathFunctions
 import org.firstinspires.ftc.teamcode.util.RobotOpMode
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import kotlin.math.abs
 
 
@@ -19,7 +20,7 @@ class HelloWorld : RobotOpMode() {
     override fun runInit() {
     }
 
-    override fun runLoop() {
+    override fun runLoop(packet: TelemetryPacket) {
         var input = controller.movementControl()
         if (gamepad1.dpad_up) {
             input = snapToRotation(input, drive.pose, 0.0)
