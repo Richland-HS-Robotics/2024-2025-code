@@ -185,8 +185,8 @@ public class Controller {
 
         PoseVelocity2d input =  new PoseVelocity2d(
                 new Vector2d(
-                    sigmoid(-currentGamepad1.left_stick_x) * multiplier * 0.75, // Forward-backward
-                    sigmoid(-currentGamepad1.left_stick_y) * multiplier * 0.75     // Left-right (positive x is left)
+                    sigmoid(-currentGamepad1.left_stick_y) * multiplier * 0.75, // Forward-backward
+                    sigmoid(-currentGamepad1.left_stick_x) * multiplier * 0.75     // Left-right (positive x is left)
                 ),
                 sigmoid(-currentGamepad1.right_stick_x) * multiplier * 0.25 // turn (positive movements counter-clockwise)
         );
@@ -252,6 +252,18 @@ public class Controller {
             return -currentGamepad2.right_stick_y * 0.5;
         }else{
             return currentGamepad1.right_stick_y;
+        }
+    }
+
+    /**
+     * Control the linear slide.
+     * @return The linear slide power, from -1 to 1. 1 is up, -1 is down.
+     */
+    public double manualSlidePower(){
+        if(this.controlMode == ControlMode.TWO_DRIVERS) {
+            return -currentGamepad2.left_stick_y;
+        }else{
+            return -currentGamepad1.right_stick_y;
         }
     }
 

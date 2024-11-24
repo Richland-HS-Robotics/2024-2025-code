@@ -14,10 +14,10 @@ class GreenArm(hardwareMap: HardwareMap): Arm(hardwareMap) {
 
     @Config
     companion object TestGreenTeamConstants{
-        @JvmField var LEFT_SERVO_OPEN_POSITION: Double = 0.4
-        @JvmField var LEFT_SERVO_CLOSED_POSITION: Double = 0.7
-        @JvmField var RIGHT_SERVO_OPEN_POSITION: Double = 0.7
-        @JvmField var RIGHT_SERVO_CLOSED_POSITION: Double = 0.4
+        @JvmField var LEFT_SERVO_OPEN_POSITION: Double = 0.2
+        @JvmField var LEFT_SERVO_CLOSED_POSITION: Double = 0.8
+        @JvmField var RIGHT_SERVO_OPEN_POSITION: Double = 0.6
+        @JvmField var RIGHT_SERVO_CLOSED_POSITION: Double = 0.15
     }
 
 

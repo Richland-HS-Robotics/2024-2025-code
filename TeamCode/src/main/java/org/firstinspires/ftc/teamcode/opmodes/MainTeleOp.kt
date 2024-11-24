@@ -37,6 +37,11 @@ class MainTeleOp: RobotOpMode() {
             is GreenArm -> (arm as GreenArm).setClawPosition(controller.greenClawOpenClose())
         }
 
+        when(arm){
+            is GoldArm -> (arm as GoldArm).setSlidePower(controller.manualSlidePower())
+        }
+
+
         if(controller.resetArmEncoder()){
             arm.shoulder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         }

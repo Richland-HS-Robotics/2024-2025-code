@@ -26,7 +26,8 @@ open class Arm(hardwareMap: HardwareMap) {
 
         if (!disabled){
             shoulder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-            shoulder.direction = DcMotorSimple.Direction.REVERSE
+            shoulder.direction = DcMotorSimple.Direction.FORWARD
+            shoulder.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         }
     }
 

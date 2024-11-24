@@ -19,17 +19,23 @@ class MainAuto: RobotOpMode() {
     }
 
     override fun runStart() {
-        drive.setDrivePowers(PoseVelocity2d(Vector2d(0.3, 0.0), 0.0))
+        arm.shoulder.targetPosition = arm.angleToTicks(75.0 - 27.0)
+        arm.shoulder.mode = DcMotor.RunMode.RUN_TO_POSITION
 
-        sleep(1000)
+        arm.shoulder.power = 0.05
+
+        sleep(5000)
+
+        drive.setDrivePowers(PoseVelocity2d(Vector2d(0.1, 0.0), 0.0))
+
+        sleep(3500)
         drive.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
-//        arm.shoulder.targetPosition = arm.angleToTicks(75.0)
-//        arm.shoulder.mode = DcMotor.RunMode.RUN_TO_POSITION
-//
-//        arm.shoulder.power = 0.7
 
+//        drive.setDrivePowers(PoseVelocity2d(Vector2d(0.1,0.0),0.0))
 //        sleep(1000)
-//
+//        drive.setDrivePowers(PoseVelocity2d(Vector2d(0.0,0.0),0.0))
+
+        (arm as GoldArm).setIntakePower(1.0)
 //        drive.setDrivePowers(PoseVelocity2d(Vector2d(0.0, -0.3), 0.0))
 //        sleep(2000)
 //        drive.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
