@@ -38,9 +38,9 @@ public class DriveEncoderLocalizer extends Localizer {
     private Encoder leftRear;
     private Encoder rightRear;
     private double totalHeading;
-    public static double FORWARD_TICKS_TO_INCHES = 0.0048;
-    public static double STRAFE_TICKS_TO_INCHES = -0.0061;
-    public static double TURN_TICKS_TO_RADIANS = 0.0011;
+    public static double FORWARD_TICKS_TO_INCHES = 1;
+    public static double STRAFE_TICKS_TO_INCHES = 1;
+    public static double TURN_TICKS_TO_RADIANS = 1;
     public static double ROBOT_WIDTH = 1;
     public static double ROBOT_LENGTH = 1;
 
@@ -71,8 +71,8 @@ public class DriveEncoderLocalizer extends Localizer {
 
         // TODO: reverse any encoders necessary
         leftFront.setDirection(Encoder.REVERSE);
-        leftRear.setDirection(Encoder.REVERSE);
-        rightRear.setDirection(Encoder.FORWARD);
+        rightRear.setDirection(Encoder.REVERSE);
+        leftRear.setDirection(Encoder.FORWARD);
         rightRear.setDirection(Encoder.FORWARD);
 
         setStartPose(setStartPose);
@@ -182,7 +182,7 @@ public class DriveEncoderLocalizer extends Localizer {
         globalDeltas = Matrix.multiply(Matrix.multiply(prevRotationMatrix, transformation), robotDeltas);
 
         displacementPose.add(new Pose(globalDeltas.get(0, 0), globalDeltas.get(1, 0), globalDeltas.get(2, 0)));
-        currentVelocity = new Pose(globalDeltas.get(0, 0) / (deltaTimeNano * Math.pow(10.0, 9)), globalDeltas.get(1, 0) / (deltaTimeNano * Math.pow(10.0, 9)), globalDeltas.get(2, 0) / (deltaTimeNano * Math.pow(10.0, 9)));
+        currentVelocity = new Pose(globalDeltas.get(0, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(1, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(2, 0) / (deltaTimeNano / Math.pow(10.0, 9)));
 
         totalHeading += globalDeltas.get(2, 0);
     }
